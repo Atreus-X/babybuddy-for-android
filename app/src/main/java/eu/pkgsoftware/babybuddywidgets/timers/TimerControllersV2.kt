@@ -36,6 +36,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.localeFormatDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
@@ -103,6 +104,7 @@ abstract class GenericLoggingController(
 
     open val uiIconList = bindings.icons.children
     open val uiNoteEditor = bindings.noteEditor
+    open val uiEditStartTimeLabel = bindings.startTime
     open val uiCurrentTimerTime = bindings.currentTimerTime
 
     override val saveButton: ImageButton = bindings.sendButton
@@ -136,6 +138,7 @@ abstract class GenericLoggingController(
 
     override fun reset() {
         uiNoteEditor.setText("")
+        uiEditStartTimeLabel.setText("")
         storeStateForSuspend()
     }
 
@@ -186,6 +189,16 @@ abstract class GenericLoggingController(
                 .replace("HH".toRegex(), "" + hours)
                 .replace("MM".toRegex(), Utils.padToLen("" + minutes % 60, '0', 2))
                 .replace("ss".toRegex(), Utils.padToLen("" + seconds % 60, '0', 2))
+        }
+
+        (timer?.start).let {
+            if (it != null) {
+                val phrase = Phrase.from(fragment.context, R.string.start_time_label_pattern)
+                    .put("datetime", localeFormatDate(it))
+                uiEditStartTimeLabel.text = phrase.format()
+            } else {
+                uiEditStartTimeLabel.text = ""
+            }
         }
     }
 
