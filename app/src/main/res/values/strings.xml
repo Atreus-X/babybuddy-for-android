@@ -179,6 +179,7 @@
 
     <!-- Generic dialog fields -->
     <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
 
     <!-- Help screen -->
     <string name="help_title">Help</string>

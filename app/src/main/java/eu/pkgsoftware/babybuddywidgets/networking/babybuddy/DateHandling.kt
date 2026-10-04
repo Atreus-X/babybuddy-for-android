@@ -51,3 +51,8 @@ fun localeFormatDate(d: Date): String {
     val sdf = SimpleDateFormat.getDateInstance()
     return sdf.format(d)
 }
+
+fun localeFormatDateTime(d: Date): String {
+    val sdf = SimpleDateFormat.getDateTimeInstance()
+    return sdf.format(d)
+}
