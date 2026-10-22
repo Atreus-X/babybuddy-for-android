@@ -36,18 +36,31 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4.5.0
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin' # Note to self: This IS OpenJDK
       
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3.2.2
+        uses: android-actions/setup-android@v4.0.4
+
+      - name: Install Android platform and build tools
+        run: |
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Check build prerequisites
         run: |
           bash check-build-prerequisites.sh
+
+      - name: Restore stable debug keystore (keeps sideloaded updates installable)
+        env:
+          DEBUG_KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$DEBUG_KEYSTORE_B64" ]; then
+            mkdir -p ~/.android
+            echo "$DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+          fi
 
       - name: Run gradle build
         run: |
@@ -56,3 +69,9 @@ jobs:
       - name: Run post-build checks
         run: |
           bash tools/workflows/check-translations.sh
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: babybuddy-debug-apk
+          path: app/build/outputs/apk/debug/*.apk

@@ -38,13 +38,14 @@ if ! jq --version > /dev/null 2>&1 ; then
     exit 1
 fi
 
-echo "Check if java 17.* is installed and accessible via JAVA_HOME..."
+echo "Check if java 17.* or 21.* is installed and accessible via JAVA_HOME..."
 if [[ -z "$JAVA_HOME" ]]; then
     echo "JAVA_HOME is not set"
     exit 1
 fi
-if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q -E "openjdk (version )?[ \"]*17." ; then
-    echo "java 17 is not installed"
+# app/build.gradle compiles Java for 21, so a JDK 21 is needed to keep Java and Kotlin targets consistent
+if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q -E "openjdk (version )?[ \"]*(17|21)\." ; then
+    echo "java 17 or 21 is not installed"
     exit 1
 fi
 
@@ -63,7 +64,9 @@ if [[ -z "$targetSdk" ]]; then
     echo "targetSdkVersion not found in app/build.gradle"
     exit 1
 fi
-if [[ ! -d "$ANDROID_HOME/platforms/android-$targetSdk" ]]; then
+if ! compgen -G "$ANDROID_HOME/platforms/android-$targetSdk" > /dev/null \
+   && ! compgen -G "$ANDROID_HOME/platforms/android-$targetSdk.*" > /dev/null ; then
+    # Newer SDKs name platforms with a minor version, e.g. android-37.0
     echo "Android SDK for targetSdk $targetSdk not found in $ANDROID_HOME"
     exit 1
 fi

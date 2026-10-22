@@ -206,4 +206,5 @@
     </array>
     <string name="diaper_color_label">Kleur</string>
     <string name="timeline_title_line_title">Timeline</string>
+    <string name="other_active_timers_title">Andere actieve timers</string>
 </resources>

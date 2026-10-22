@@ -14,7 +14,9 @@ import java.util.Date
 data class Timer(
 	@JsonProperty("id", required = true) val id: Int,
 	@JsonProperty("child", required = true) val childId: Int,
-	@JsonProperty("name", required = true) val name: String,
+	// Quick timers started from the web UI have no name (null); a non-null type here made parsing the
+	// whole timer list fail, which the UI reported as "Connecting to server" forever.
+	@JsonProperty("name", required = false) val name: String?,
 	@JsonProperty("start", required = true)
 	@JsonDeserialize(using = DateTimeDeserializer::class)
 	@JsonSerialize(using = DateTimeSerializer::class)

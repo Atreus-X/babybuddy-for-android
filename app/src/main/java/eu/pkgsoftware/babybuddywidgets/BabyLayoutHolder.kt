@@ -2,9 +2,12 @@ package eu.pkgsoftware.babybuddywidgets
 
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
+import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter
+import eu.pkgsoftware.babybuddywidgets.compat.IMPLEMENTED_ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader
@@ -25,6 +28,7 @@ import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
 class BabyLayoutHolder(
@@ -194,6 +198,7 @@ class BabyLayoutHolder(
 
         if (child == null) {
             cachedTimers = arrayOf()
+            renderOtherTimers(arrayOf())
             callTimerUpdateCallback()
             return
         }
@@ -207,7 +212,37 @@ class BabyLayoutHolder(
         }
 
         cachedTimers = timers
+        renderOtherTimers(timers)
         callTimerUpdateCallback()
+    }
+
+    /**
+     * Timers whose names don't map onto one of the app's own activity buttons (e.g. started from
+     * the web UI) have no button to live on, so list them read-only instead of silently dropping them.
+     */
+    private fun renderOtherTimers(timers: Array<BabyBuddyClient.Timer>) {
+        val others = timers.filter {
+            val activity = BabyBuddyV2TimerAdapter.mapBabyBuddyNameToActivity(it.readableName())
+            activity == null || activity !in IMPLEMENTED_ACTIVITIES
+        }
+
+        binding.otherTimersContainer.visibility = if (others.isEmpty()) View.GONE else View.VISIBLE
+        val list = binding.otherTimersList
+        while (list.childCount > others.size) {
+            list.removeViewAt(list.childCount - 1)
+        }
+        while (list.childCount < others.size) {
+            list.addView(TextView(list.context).apply { textSize = 16f })
+        }
+
+        others.forEachIndexed { i, timer ->
+            val start = timer.start ?: return@forEachIndexed
+            val elapsed = maxOf(0L, (timer.computeCurrentServerEndTime(client).time - start.time) / 1000)
+            (list.getChildAt(i) as TextView).text = String.format(
+                Locale.US, "%s  %d:%02d:%02d",
+                timer.readableName(), elapsed / 3600, elapsed % 3600 / 60, elapsed % 60
+            )
+        }
     }
 
     private fun resetChildHistoryLoader() {
@@ -240,6 +275,7 @@ class BabyLayoutHolder(
         deselected = true
         child = null
         cachedTimers = null
+        renderOtherTimers(arrayOf())
     }
 
     private inner class UpdateBufferingPromise<A, B>(private val promise: Promise<A, B>) :
