@@ -43,7 +43,7 @@ jobs:
           distribution: 'temurin' # Note to self: This IS OpenJDK
       
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3.2.2
+        uses: android-actions/setup-android@v4.0.4
 
       - name: Check build prerequisites
         run: |
