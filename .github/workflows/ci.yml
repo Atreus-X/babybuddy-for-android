@@ -60,11 +60,23 @@ jobs:
           if [ -n "$DEBUG_KEYSTORE_B64" ]; then
             mkdir -p ~/.android
             echo "$DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+            echo "DEBUG_KEYSTORE_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
           fi
 
       - name: Run gradle build
         run: |
           ./gradlew --no-daemon build -PskipIntegrationTests
+
+      - name: Verify APK is signed with the stored key
+        if: env.DEBUG_KEYSTORE_PATH != ''
+        run: |
+          want=$(keytool -list -keystore "$DEBUG_KEYSTORE_PATH" -storepass android 2>/dev/null \
+                 | grep -i 'SHA-256' | sed 's/.*: //' | tr -d ':' | tr 'A-F' 'a-f')
+          got=$("$ANDROID_HOME"/build-tools/37.0.0/apksigner verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
+                 | grep -i 'SHA-256 digest' | head -1 | sed 's/.*: //')
+          echo "stored key: $want"
+          echo "apk signer: $got"
+          [ -n "$want" ] && [ "$want" = "$got" ]
 
       - name: Run post-build checks
         run: |

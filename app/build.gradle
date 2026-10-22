@@ -92,6 +92,20 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        debug {
+            // CI restores a fixed debug key (secret) so sideloaded updates keep the same signature.
+            // Without DEBUG_KEYSTORE_PATH the Android default debug keystore is used as before.
+            def ciKeystore = System.getenv("DEBUG_KEYSTORE_PATH")
+            if (ciKeystore) {
+                storeFile file(ciKeystore)
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Installs next to the Play Store build instead of clashing with its signature
