@@ -53,6 +53,15 @@ jobs:
         run: |
           bash check-build-prerequisites.sh
 
+      - name: Restore stable debug keystore (keeps sideloaded updates installable)
+        env:
+          DEBUG_KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$DEBUG_KEYSTORE_B64" ]; then
+            mkdir -p ~/.android
+            echo "$DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+          fi
+
       - name: Run gradle build
         run: |
           ./gradlew --no-daemon build -PskipIntegrationTests
