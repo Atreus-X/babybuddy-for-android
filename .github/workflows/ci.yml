@@ -56,3 +56,9 @@ jobs:
       - name: Run post-build checks
         run: |
           bash tools/workflows/check-translations.sh
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: babybuddy-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
