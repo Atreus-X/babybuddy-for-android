@@ -63,7 +63,9 @@ if [[ -z "$targetSdk" ]]; then
     echo "targetSdkVersion not found in app/build.gradle"
     exit 1
 fi
-if [[ ! -d "$ANDROID_HOME/platforms/android-$targetSdk" ]]; then
+if ! compgen -G "$ANDROID_HOME/platforms/android-$targetSdk" > /dev/null \
+   && ! compgen -G "$ANDROID_HOME/platforms/android-$targetSdk.*" > /dev/null ; then
+    # Newer SDKs name platforms with a minor version, e.g. android-37.0
     echo "Android SDK for targetSdk $targetSdk not found in $ANDROID_HOME"
     exit 1
 fi

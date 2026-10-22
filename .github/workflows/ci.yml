@@ -45,6 +45,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4.0.4
 
+      - name: Install Android platform and build tools
+        run: |
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+
       - name: Check build prerequisites
         run: |
           bash check-build-prerequisites.sh
